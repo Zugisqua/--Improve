@@ -53,7 +53,7 @@ do
 	fi
 	echo -e \ "\e[36mnext\e[37m"
     else
-	echo -e \ "\e[31mIt\'s not a good Head"  "\e[37m."
+	echo -e \ "\e[31mIt's not a good Head"  "\e[37m."
     fi
 done
 echo \ exit!
