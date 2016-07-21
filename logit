@@ -1,0 +1,49 @@
+#!/bin/bash
+
+j=0;k=0
+while [[ $j != 2 ]] && read -p "Head: " a
+do
+    i=0
+    if [[ $a == [0-9] || $a == [0-9][0-9] ]];then
+	echo $a >> $1
+   	j=$((j+1))
+	if [[ $j == 2 ]];then
+	    sed -i '$d' $1
+	fi
+    elif [[ $a == 'exit' ]];then
+	j=2
+    else
+	echo -n $a\ >> $1
+	while [[ $i != 2 ]] && read -p "Mark: " b
+	do
+	    if [[ $b == 'ti' ]];then
+		H=$((10#$(date "+%H")))
+		M=$((10#$(date "+%M")))
+		if [[ $H == [0-3] ]];then
+		    H=$((24+H))
+		fi
+		ti=$((6*(H-6)+M/10+M%10/5))
+		echo -n $ti\ >> $1
+		echo \ input: $H:$(($M/10+M%10/5))0
+		i=$((i+1))		
+	    elif [[ $b == 'exit' ]];then
+		sed -i '$d' $1
+		i=2
+		k=1
+	    elif [[ $b == [0-9] || $b == [0-9][0-9] || $b == [0-9][0-9][0-9] ]];then
+		echo -n $b\ >> $1
+		i=$((i+1))		
+	    else
+		echo \ Error! retry please.
+	    fi
+	done
+	if [[ $k == 0 ]];then
+	    echo \ >> $1
+	else
+	    k=0
+	fi
+	echo \ next.
+    fi
+done
+echo \ exit!
+
