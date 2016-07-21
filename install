@@ -1,17 +1,21 @@
 #!/bin/bash
 
 
-if [[ $1 == '-i' ]];then
+if [[ $1 == 'i' ]];then
     cp -v ./script/calculator $HOME/bin/ltcalcul
     cp -v ./script/logit $HOME/bin/ltlog
+    if [[ $2 == '-a' ]];then
+	sed -i 's#/bin/bash#/system/bin/bash#' $HOME/bin/ltcalcul
+	sed -i 's#/bin/bash#/system/bin/bash#' $HOME/bin/ltlog
+    fi
     echo done.
-elif [[ $1 == '-u' ]];then
+elif [[ $1 == 'u' ]];then
     rm -v ./script/calculator $HOME/bin/ltcalcul
     rm -v ./script/logit $HOME/bin/ltlog
     echo done.
 else
-    echo \ 
-    echo \ \ -i install
-    echo \ \ -u unistall
+    echo \ \ i  install
+    echo \ \ u  unistall
+    echo \ \ -a for android
 fi
 
