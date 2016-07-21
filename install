@@ -5,8 +5,8 @@ if [[ $1 == 'i' ]];then
     cp -v ./script/calculator $HOME/bin/ltcalcul
     cp -v ./script/logit $HOME/bin/ltlog
     if [[ $2 == '-a' ]];then
-	sed -i 's#/bin/bash#/system/bin/bash#' $HOME/bin/ltcalcul
-	sed -i 's#/bin/bash#/system/bin/bash#' $HOME/bin/ltlog
+	sed -i 's#/bin/bash#/system/xbin/bash#' $HOME/bin/ltcalcul
+	sed -i 's#/bin/bash#/system/xbin/bash#' $HOME/bin/ltlog
     fi
     echo done.
 elif [[ $1 == 'u' ]];then
