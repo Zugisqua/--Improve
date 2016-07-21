@@ -1,0 +1,17 @@
+#!/bin/bash
+
+
+if [[ $1 == '-i' ]];then
+    cp -v ./script/calculator $HOME/bin/ltcalcul
+    cp -v ./script/logit $HOME/bin/ltlog
+    echo done.
+elif [[ $1 == '-u' ]];then
+    rm -v ./script/calculator $HOME/bin/ltcalcul
+    rm -v ./script/logit $HOME/bin/ltlog
+    echo done.
+else
+    echo \ 
+    echo \ \ -i install
+    echo \ \ -u unistall
+fi
+

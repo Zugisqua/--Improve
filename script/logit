@@ -1,7 +1,8 @@
 #!/bin/bash
 
 j=0;k=0
-while [[ $j != 2 ]] && read -p "Head: " a
+echo -ne "\e[37m"
+while [[ $j != 2 ]] && read -p "Head: " a d
 do
     i=0
     if [[ $a == [0-9] || $a == [0-9][0-9] ]];then
@@ -12,9 +13,9 @@ do
 	fi
     elif [[ $a == 'exit' ]];then
 	j=2
-    else
+    elif [[ $d == "" ]];then
 	echo -n $a\ >> $1
-	while [[ $i != 2 ]] && read -p "Mark: " b
+	while [[ $i != 2 ]] && read -p "Mark: " b c
 	do
 	    if [[ $b == 'ti' ]];then
 		H=$((10#$(date "+%H")))
@@ -24,17 +25,25 @@ do
 		fi
 		ti=$((6*(H-6)+M/10+M%10/5))
 		echo -n $ti\ >> $1
-		echo \ input: $H:$(($M/10+M%10/5))0
+		echo -e \ "\e[36minput: $H:$(($M/10+M%10/5))0\e[37m"		
 		i=$((i+1))		
 	    elif [[ $b == 'exit' ]];then
 		sed -i '$d' $1
 		i=2
 		k=1
-	    elif [[ $b == [0-9] || $b == [0-9][0-9] || $b == [0-9][0-9][0-9] ]];then
-		echo -n $b\ >> $1
+	    elif [[ ($b == [0-9] || $b == [0-2][0-9])&&($c == [0-9] || $c == [0-5][0-9] ) ]];then
+		if [[ $b == [0-3] ]];then
+		    H=$((24+b))
+		else
+		    H=$b
+		fi
+		M=$c
+		ti=$((6*(H-6)+M/10+M%10/5))
+		echo -n $ti\ >> $1
+		echo -e \ "\e[36minput: $H:$(($M/10+M%10/5))0\e[37m"
 		i=$((i+1))		
 	    else
-		echo \ Error! retry please.
+		echo -e \ "\e[31mError! retry please.\e[37m"
 	    fi
 	done
 	if [[ $k == 0 ]];then
@@ -42,7 +51,9 @@ do
 	else
 	    k=0
 	fi
-	echo \ next.
+	echo -e \ "\e[36mnext\e[37m"
+    else
+	echo -e \ "\e[31mIt\'s not a good Head"  "\e[37m."
     fi
 done
 echo \ exit!
