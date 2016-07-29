@@ -47,7 +47,8 @@ do
 	    fi
 	done
 	if [[ $k == 0 ]];then
-	    echo \ >> $1
+	    read -p "Note: " e
+	    echo $e >> $1
 	else
 	    k=0
 	fi
