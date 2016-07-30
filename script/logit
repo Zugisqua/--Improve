@@ -13,6 +13,9 @@ do
 	fi
     elif [ $a == 'exit' ];then
 	j=2
+    elif [ $a == 'delete' ];then
+	sed -i '$d' $1
+	echo -e \ "\e[35malready deleted last event.\e[37m"
     elif [[ $d == "" ]];then
 	echo -n $a\ >> $1
 	while [[ $i != 2 ]] && read -p "Mark: " b c
@@ -27,10 +30,6 @@ do
 		echo -n $ti\ >> $1
 		echo -e \ "\e[36mmarked: $H:$(($M/10+M%10/5))0\e[37m"		
 		i=$((i+1))		
-	    elif [ $b == 'exit' ];then
-		sed -i '$d' $1
-		i=2
-		k=1
 	    elif [[ ($b == [0-9] || $b == [0-2][0-9])&&($c == [0-9] || $c == [0-5][0-9] ) ]];then
 		if [[ $b == [0-3] ]];then
 		    H=$((24+b))
@@ -41,7 +40,11 @@ do
 		ti=$((6*(H-6)+M/10+M%10/5))
 		echo -n $ti\ >> $1
 		echo -e \ "\e[36mmarked: $H:$(($M/10+M%10/5))0\e[37m"
-		i=$((i+1))		
+		i=$((i+1))
+	    elif [ $b == 'exit' ];then
+		sed -i '$d' $1
+		i=2
+		k=1
 	    else
 		echo -e \ "\e[31mError! retry please.\e[37m"
 	    fi
