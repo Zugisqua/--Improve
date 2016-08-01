@@ -64,7 +64,7 @@ if [[ "$2" = "detail" || "$2" = "all" ]];then
 	    let Ac_$k=$((Ac_$k+C_$k[l]))
 	    printf "  [$l] $((S_$k[l]/6)):$((S_$k[l]%6))0\t"
 	done
-	printf "\n  Total: $((As_$k/6)):$((As_$k%6))0\tOccupy: $((As_$k*100/AT)).$(((As_$k*1000/AT)%10))%%\tAver-duration:  $(((As_$k/Ac_$k)/6)):$(((As_$k/Ac_$k)%6))0\n"
+	printf "\n  Total: $((As_$k/6)):$((As_$k%6))0\n  Occupy: $((As_$k*100/AT)).$(((As_$k*1000/AT)%10))%% \tAver-duration:  $(((As_$k/Ac_$k)/6)):$(((As_$k/Ac_$k)%6))0\n"
     done
 fi
 
