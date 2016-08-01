@@ -31,7 +31,7 @@ do
 	let Tols[$j-1]=$((Tols[j-1]+c-b))
 	let C_$a[$j-1]=$((C_$a[j-1]+1))
 #-------output-----#
-	echo $((j-1))-$a: $((6+b/6)):$((b%6))0-$((6+c/6)):$((c%6))0  \> $(((c-b)/6)):$(((c-b)%6))0
+	printf "$((j-1))-$a:\t$((6+b/6)):$((b%6))0-$((6+c/6)):$((c%6))0\t$(((c-b)/6)):$(((c-b)%6))0\n"
 	if [[ "$2" = "note" || "$2" = "all" ]];then
 	    echo \ \ Notes: $d
 	fi	
@@ -49,9 +49,9 @@ for k in ${Tols[@]};do TolS=$((TolS+k));done
 for k in $(seq 0 $((j-1)))
 do
     AT=$((AT+At[$k]))
-    echo \[$k\] Total Duration: $((Tols[k]/6)):$((Tols[k]%6))0/$((At[k]/6)):$((At[k]%6))0 \ \ Occupy: $((Tols[k]*100/At[k]))%
+    printf "[$k] Total Duration: $((Tols[k]/6)):$((Tols[k]%6))0/$((At[k]/6)):$((At[k]%6))0\tOccupy: $((Tols[k]*100/At[k]))%%\n"
 done
-echo  \ \ \ \ Total ALL: $((TolS/6)):$((TolS%6))0/$((AT/6)):$((AT%6))0 \ mean: $((TolS*100/AT))%
+printf "    Total ALL: $((TolS/6)):$((TolS%6))0/$((AT/6)):$((AT%6))0\tmean: $((TolS*100/AT))%%\n"
 
 if [[ "$2" = "detail" || "$2" = "all" ]];then
     echo ----------------------
@@ -62,11 +62,9 @@ if [[ "$2" = "detail" || "$2" = "all" ]];then
 	do
 	    let As_$k=$((As_$k+S_$k[l]))
 	    let Ac_$k=$((Ac_$k+C_$k[l]))
-	    echo -n \ \ \[$l\] $((S_$k[l]/6)):$((S_$k[l]%6))0
+	    printf "  [$l] $((S_$k[l]/6)):$((S_$k[l]%6))0\t"
 	done
-	echo \ 
-	echo \ \ Total: $((As_$k/6)):$((As_$k%6))0
-	echo \ \ Occupy: $((As_$k*100/AT)).$(((As_$k*1000/AT)%10))% \ \ Aver-duration:  $(((As_$k/Ac_$k)/6)):$(((As_$k/Ac_$k)%6))0
+	printf "\n  Total: $((As_$k/6)):$((As_$k%6))0\tOccupy: $((As_$k*100/AT)).$(((As_$k*1000/AT)%10))%%\tAver-duration:  $(((As_$k/Ac_$k)/6)):$(((As_$k/Ac_$k)%6))0\n"
     done
 fi
 
