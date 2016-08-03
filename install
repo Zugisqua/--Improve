@@ -1,24 +1,30 @@
 #!/bin/bash
 
 
-if [[ $1 == 'i' ]];then
+if [ "$(echo $1|grep -|grep i)" != "" ];then
     cp -v ./script/calculator $HOME/bin/ltcalcul
     cp -v ./script/logit $HOME/bin/ltlog
     cp -v ./script/todol $HOME/bin/ltodo
-    if [[ $2 == '-a' ]];then
+    if [[ "$(echo $1|grep a)" != "" ]];then
 	sed -i 's#/bin/bash#/system/xbin/bash#' $HOME/bin/ltcalcul
 	sed -i 's#/bin/bash#/system/xbin/bash#' $HOME/bin/ltlog
 	sed -i 's#/bin/bash#/system/xbin/bash#' $HOME/bin/ltodo	
     fi
-    echo done.
-elif [[ $1 == 'u' ]];then
+    mkdir $HOME/.logitime
+    echo "num:1" > $HOME/.logitime/.ltconfig
+    for i in $(seq 0 5)
+    do
+	echo "day $i:108" >> $HOME/.logitime/.ltconfig
+    done
+    echo Installed.
+elif [[ "$(echo $1|grep -|grep u)" != "" ]];then
     rm -v ./script/calculator $HOME/bin/ltcalcul
     rm -v ./script/logit $HOME/bin/ltlog
-    rm -v ./script/logit $HOME/bin/ltodo    
-    echo done.
+    rm -v ./script/logit $HOME/bin/ltodo
+    read -p "Delete the user's files? yes?:" a
+    [ "$a" = "yes" ] && rm -Rv $HOME/.logitime || echo ingored $HOME/.logitime
+    echo Ininstalled.
 else
-    echo \ \ i  install
-    echo \ \ u  unistall
-    echo \ \ -a for android
+    printf "\t-i\tinstall\n\t  -a\tinstall for android\n\t-u\tunistall\n"
 fi
 
