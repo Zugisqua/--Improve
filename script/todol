@@ -2,39 +2,47 @@
 
 
 ga=1
+log=$HOME/.logitime/log
+list=$HOME/.logitime/list
 #=====================
 
 if [ "$(echo $1|grep -o -)" = '-' ];then
     if [ "$(echo $1|grep -o u)" = 'u' ];then
 	while read a b c d e f
 	do
-	    [  "$(grep -c "$a" "$rep/Plan-Improve/script/list")" != '1' ] && b_=_ || b_=$c
+	    [  "$(grep -c "$a" "$list")" != '1' ] && b_=_ || b_=$c
 	    if [[ "$(echo $c|grep -o U)" != 'U' || "$e" = "$(date '+%F')" ]];then
 		printf "$a 0000000000 $b_ $d $e $f\n" >> .tmp_
 	    fi
-	done <$rep/Plan-Improve/script/list
+	done <$list
 	while read a b c d e f
 	do	    
 	    if [[ "$(echo $c|grep -o U)" = 'U' && "$e" != "$(date  '+%F')" ]];then
 		d_=$((d+($(date -d "$(date +%F)" +%s)-$(date -d "$e" +%s))/86400))
 		printf "$a 0000000000 $c $d_ $(date '+%F') $f\n" >> .tmp_
 	    fi
-	done <$rep/Plan-Improve/script/list	
-	mv .tmp_ $rep/Plan-Improve/script/list
+	done <$list	
+	mv .tmp_ $list
 	echo " done."	
     fi
     if [  "$(echo $1|grep -o l)" = 'l' ];then
 	if [ "$2" != "" ];then
-	    grep -P "$2" "$rep/Plan-Improve/script/list" > .tmp_
+	    grep -P "$2" "$list" > .tmp_
 	    sort -ofuk1 .tmp_
 	else
-	    sort -fuk1 $rep/Plan-Improve/script/list > .tmp_
+	    sort -fuk1 $list > .tmp_
 	fi
 	while read a b c d e f
 	do	
 	    if [ "$(echo $1|grep -o 0)" = '0' ];then
 		[[ "$d" = 0 || "$(echo $c|grep -o U)" = ""  ]] && d_=$d || d_="\033[33m$d\033[37m"
 		printf "[$e]-$d_  \t"
+	    elif [ "$(echo $1|grep -o 2)" != "" ];then
+		t_=$(grep -Po  "(?<= $a ).+" .tmp_$ga)
+		_t=$(grep -Po  ".+(?= $a )" .tmp_$ga)
+		T_=$((t_/6)):$((t_%6))0
+		_T=$((_t/6)):$((_t%6))0
+		printf "[ \033[36m$_T\033[37m ]-$d   \t"
 	    fi
     	    _i=$a
 	    while [[ "$(echo $_i|grep -Po "(?<=_).+")" != "" ]]
@@ -46,34 +54,36 @@ if [ "$(echo $1|grep -o -)" = '-' ];then
 		    printf "    "
 		fi
 	    done
-	    [[ "$(echo $c|grep -o U)" != "" &&  "$(grep -c "$a" "$rep/Plan-Improve/script/list")" = '1' ]] && printf "\033[32m"   
+	    [[ "$(echo $c|grep -o U)" != "" &&  "$(grep -c "$a" "$list")" = '1' ]] && printf "\033[32m"   
 	    if [ "$(echo $1|grep -o 1)" = '1' ];then
-		printf "$_i\n"
+		printf "$_i"
 	    else
-#		t_=$(grep -Po  "(?<=$a ).+" .tmp_$ga)
-		printf "$a $t_\n"		    
+
+		printf "$a"		    
 	    fi
 	    printf "\033[37m"
+	    [  "$(echo $1|grep -o 2)" != ""  ] &&  printf " - (\033[35m$T_\033[37m)\n" || printf "\n"
 	done < .tmp_
+	[  "$(echo $1|grep -o 2)" != ""  ] && printf "$(grep -Po '(?<=__).+(?=__)' .tmp_$ga) Updated\n"
 	rm .tmp_
     elif [  "$(echo $1|grep -o a)" = 'a' ];then
 	while read a b c d e
 	do    
 	    printf "$a[$c]=$d\t $e\n"
-	done < $rep/Plan-Improve/script/list
+	done < $list
     elif [ "$(echo $1|grep -o x)" = 'x'  ];then
 	read -p "InPut: " a b
 	if [[  $b != ""  ]];then
-	    printf "$a 0000000000 U 0 $(date '+%F') $b\n" >> $rep/Plan-Improve/script/list
+	    printf "$a 0000000000 U 0 $(date '+%F') $b\n" >> $list
 	    printf " Build.\n"
 	else
 	    echo " Invalid! try again."
 	fi
     elif [ "$(echo $1|grep -o f)" = 'f' ];then	
-	sed  "s#$2 0000000000 U#$2 0000000000 _#g" $rep/Plan-Improve/script/list > .tmp_
-	if [[ $(diff .tmp_ $rep/Plan-Improve/script/list) && "$2" != "" ]] ;then
+	sed  "s#$2 0000000000 U#$2 0000000000 _#g" $list > .tmp_
+	if [[ $(diff .tmp_ $list) && "$2" != "" ]] ;then
 	    printf " $2 have marked as finished.\n"
-	    mv .tmp_ $rep/Plan-Improve/script/list
+	    mv .tmp_ $list
 	else
 	    printf " No such TO-DO.\n"
 	fi
@@ -81,10 +91,10 @@ if [ "$(echo $1|grep -o -)" = '-' ];then
 else
     echo ==$(date)----
     echo ""
-    grep U $rep/Plan-Improve/script/list|grep -P "$(date '+%F')" > .tmp_
+    grep U $list|grep -P "$(date '+%F')" > .tmp_
     while read a b c d e f g
     do
-	if [[ "$(grep -c "$a" $rep/Plan-Improve/script/list)" = '1' && "$(echo $c|grep -o U)" != "" ]];then	    
+	if [[ "$(grep -c "$a" $list)" = '1' && "$(echo $c|grep -o U)" != "" ]];then	    
 	    if [ "$1" = "" ];then
 		printf "\033[33m$d\033[37m-[\033[32m$a\033[37m] $f\n"
 	    elif [ "$1" = "more"  ];then
