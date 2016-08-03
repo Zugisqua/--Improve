@@ -4,14 +4,17 @@
 if [[ $1 == 'i' ]];then
     cp -v ./script/calculator $HOME/bin/ltcalcul
     cp -v ./script/logit $HOME/bin/ltlog
+    cp -v ./script/todol $HOME/bin/ltodo
     if [[ $2 == '-a' ]];then
 	sed -i 's#/bin/bash#/system/xbin/bash#' $HOME/bin/ltcalcul
 	sed -i 's#/bin/bash#/system/xbin/bash#' $HOME/bin/ltlog
+	sed -i 's#/bin/bash#/system/xbin/bash#' $HOME/bin/ltodo	
     fi
     echo done.
 elif [[ $1 == 'u' ]];then
     rm -v ./script/calculator $HOME/bin/ltcalcul
     rm -v ./script/logit $HOME/bin/ltlog
+    rm -v ./script/logit $HOME/bin/ltodo    
     echo done.
 else
     echo \ \ i  install
