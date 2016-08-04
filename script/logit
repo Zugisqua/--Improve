@@ -3,9 +3,10 @@
 log=$HOME/.logitime/log
 list=$HOME/.logitime/list
 tmp_=$HOME/.logitime/.tmp_
+tmp=$HOME/.logitime/.tmp
 num=$(grep -Po '(?<=num:).+' $HOME/.logitime/.ltconfig)
 #==================
-if [ "$1" = ""];then
+if [ "$1" = "" ];then
     j=0;k=0
     echo -ne "\e[37m"
     while [[ $j != 2 ]] && read -p "Head: " a d
@@ -58,6 +59,10 @@ if [ "$1" = ""];then
 	    if [[ $k == 0 ]];then
 		read -p "Note: " e
 		echo $e >> $log
+		if [ "$(grep "$a " $list)" = "" ];then
+		    printf "$a 0000000000 U 0 $(date '+%F') $e\n" >> $list
+		    echo -e "\033[35m Build.\033[37m"
+		fi				
 		read -p "Act:" f g
 		if [ "$f" = 'done'  ];then
 		    sed  "s#$a 0000000000 U#$a 0000000000 _#g" $list > $tmp_
@@ -67,32 +72,28 @@ if [ "$1" = ""];then
 		    else
 			printf " \033[35mNo such TO-DO.\033[37m\n"
 		    fi
-		elif [ "$f" = "build" ];then
-		    if [ "$g" != '' ];then
-			if [ "$(grep "$g " $list)" = "" ];then
-			    printf "$g 0000000000 U 0 $(date '+%F') $e\n" >> $list
-			    echo -e "\033[35m Build.\033[37m"
-			else
-			    echo -e "\033[35m Already existed.\033[37m"
-			fi		    
-		    else
-			if [ "$(grep "$a " $list)" = "" ];then
-			    printf "$a 0000000000 U 0 $(date '+%F') $e\n" >> $list
-			    echo -e "\033[35m Build.\033[37m"
-			else
-			    echo -e "\033[35m Already existed.\033[37m"
-			fi				
-		    fi
 		else
-		    echo -e "\033[35m Ignored.\033[37m"
-		fi	    
+		    if [ "$(grep "$f " $list)" = "" ];then
+			printf "$f 0000000000 U 0 $(date '+%F') $e\n" >> $list
+			echo -e "\033[35m Build.\033[37m"
+		    else
+			echo -e "\033[35m Already existed.\033[37m"
+		    fi		    
+		fi
 	    else
-		k=0	    
-	    fi	
+		echo -e "\033[35m Ignored.\033[37m"
+	    fi	    
 	else
+	    k=0	    
 	    echo -e \ "\e[31mIt's not a good Head.\e[37m"
 	fi
     done
     echo -e \ "\e[35mexit!"
-elif [ "$(echo $1|grep -|grep r)" != ""];then
-    
+elif [ "$(echo $1|grep -|grep  r)" != "" ];then
+    mv $log ."$log"_$num
+    touch $log
+    mv $tmp "$tmp_"T
+    touch $tmp
+    sed -i "s#num:$num#num:$((num+1))#g" $HOME/.logitime/.ltconfig
+    echo -e "\e[35mcreated!\e[37m"
+fi

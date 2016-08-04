@@ -1,10 +1,11 @@
 #!/bin/bash
 
 
-num=$(grep -Po '(?<=num:).+' $HOME/.logitime/.ltconfig)
+
 log=$HOME/.logitime/log
 list=$HOME/.logitime/list
 tmp_=$HOME/.logitime/.tmp_
+tmp=$HOME/.logitime/.tmp
 #=====================
 
 if [ "$(echo $1|grep -o -)" = '-' ];then
@@ -39,8 +40,8 @@ if [ "$(echo $1|grep -o -)" = '-' ];then
 		[[ "$d" = 0 || "$(echo $c|grep -o U)" = ""  ]] && d_=$d || d_="\033[33m$d\033[37m"
 		printf "[$e]-$d_  \t"
 	    elif [ "$(echo $1|grep -o 2)" != "" ];then
-		t_=$(grep -Po  "(?<= $a ).+" $tmp_$num)
-		_t=$(grep -Po  ".+(?= $a )" $tmp_$num)
+		t_=$(grep -Po  "(?<= $a ).+" $tmp )
+		_t=$(grep -Po  ".+(?= $a )" $tmp )
 		T_=$((t_/6)):$((t_%6))0
 		_T=$((_t/6)):$((_t%6))0
 		printf "[ \033[36m$_T\033[37m ]-$d   \t"
@@ -65,7 +66,7 @@ if [ "$(echo $1|grep -o -)" = '-' ];then
 	    printf "\033[37m"
 	    [  "$(echo $1|grep -o 2)" != ""  ] &&  printf " - (\033[35m$T_\033[37m)\n" || printf "\n"
 	done < $tmp_
-	[  "$(echo $1|grep -o 2)" != ""  ] && printf "$(grep -Po '(?<=__).+(?=__)' $tmp_$num) Updated\n"
+	[  "$(echo $1|grep -o 2)" != ""  ] && printf "$(grep -Po '(?<=__).+(?=__)' $tmp ) Updated\n"
 	rm $tmp_
     elif [  "$(echo $1|grep -o a)" = 'a' ];then
 	while read a b c d e
