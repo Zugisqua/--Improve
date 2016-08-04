@@ -46,11 +46,11 @@ if [ "$(echo $1|grep -o -)" = '-' ];then
 		_T=$((_t/6)):$((_t%6))0
 		printf "[ \033[36m$_T\033[37m ]-$d\t"
 	    fi	    
-	    for i in $(seq 1 $(echo $a|grep -o _|wc -c))
+	    for i in $(seq 1 $(($(echo $a|grep -o _|wc -c)/2-1)))
 	    do
-		printf "  "
+		printf "    "
 	    done
-	    [ "$(echo $a|grep -o _)" != "" ] && printf "├── " || printf "    "	    
+	    [ "$(echo $a|grep -o _)" != "" ] && printf "└── "
 	    [[ "$(echo $c|grep -o U)" != "" &&  "$(grep -c "$a" "$list")" = '1' ]] && printf "\033[32m"
 	    if [ "$(echo $1|grep -o 1)" = '1' ];then
     		_i=$a	    

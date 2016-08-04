@@ -16,6 +16,7 @@ if [ "$(echo $1|grep -|grep i)" != "" ];then
     do
 	echo "day $i:108" >> $HOME/.logitime/.ltconfig
     done
+    touch $HOME/.logitime/.tmp_T
     echo Installed.
 elif [[ "$(echo $1|grep -|grep u)" != "" ]];then
     rm -v ./script/calculator $HOME/bin/ltcalcul
