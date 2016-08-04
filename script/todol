@@ -25,12 +25,12 @@ if [ "$(echo $1|grep -o -)" = '-' ];then
 	    fi
 	done <$list	
 	mv $tmp_ $list
-	echo " done."	
+	echo " Up-to-dated."	
     fi
     if [  "$(echo $1|grep -o l)" = 'l' ];then
 	if [ "$2" != "" ];then
 	    grep -P "$2" "$list" > $tmp_
-	    sort -ofuk1 $tmp_
+	    sort -fuk1 $tmp_ --output=$tmp_
 	else
 	    sort -fuk1 $list > $tmp_
 	fi
@@ -38,29 +38,28 @@ if [ "$(echo $1|grep -o -)" = '-' ];then
 	do	
 	    if [ "$(echo $1|grep -o 0)" = '0' ];then
 		[[ "$d" = 0 || "$(echo $c|grep -o U)" = ""  ]] && d_=$d || d_="\033[33m$d\033[37m"
-		printf "[$e]-$d_  \t"
+		printf "[$e]-$d_\t"
 	    elif [ "$(echo $1|grep -o 2)" != "" ];then
 		t_=$(grep -Po  "(?<= $a ).+" $tmp )
 		_t=$(grep -Po  ".+(?= $a )" $tmp )
 		T_=$((t_/6)):$((t_%6))0
 		_T=$((_t/6)):$((_t%6))0
-		printf "[ \033[36m$_T\033[37m ]-$d   \t"
-	    fi
-    	    _i=$a
-	    while [[ "$(echo $_i|grep -Po "(?<=_).+")" != "" ]]
+		printf "[ \033[36m$_T\033[37m ]-$d\t"
+	    fi	    
+	    for i in $(seq 1 $(echo $a|grep -o _|wc -c))
 	    do
-		_i=$(echo $_i|grep -Po "(?<=_).+")
-		if [[ "$(echo $_i|grep -Po "(?<=_).+")" = "" ]];then
-		    printf "├── "
-		else
-		    printf "    "
-		fi
+		printf "  "
 	    done
-	    [[ "$(echo $c|grep -o U)" != "" &&  "$(grep -c "$a" "$list")" = '1' ]] && printf "\033[32m"   
+	    [ "$(echo $a|grep -o _)" != "" ] && printf "├── " || printf "    "	    
+	    [[ "$(echo $c|grep -o U)" != "" &&  "$(grep -c "$a" "$list")" = '1' ]] && printf "\033[32m"
 	    if [ "$(echo $1|grep -o 1)" = '1' ];then
+    		_i=$a	    
+		while [[ "$(echo $_i|grep -Po "(?<=_).+")" != "" ]]
+		do
+		    _i=$(echo $_i|grep -Po "(?<=_).+")
+		done
 		printf "$_i"
-	    else
-
+	    else	
 		printf "$a"		    
 	    fi
 	    printf "\033[37m"
