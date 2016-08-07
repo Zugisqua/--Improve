@@ -88,8 +88,10 @@ if [ "$(echo $1|grep -o -)" = '-' ];then
 	else
 	    printf " No such TO-DO.\n"
 	fi
+    elif [[ "$(echo $1|grep -|grep -o h)" != "" ]];then
+	printf "usage: ltodo [-u] [-l[1[0][2]]] [-a] [-x] [-f]\n"
     fi
-else
+elif [ "$1" = ""  ];then
     echo ==$(date)----
     echo ""
     grep U $list|grep -P "$(date '+%F')" > $tmp_
@@ -105,4 +107,6 @@ else
     done < $tmp_
     rm $tmp_
     echo ""
+else
+    printf "usage: ltodo [-u] [-l[1[0][2]]] [-a] [-x] [-f]\n"
 fi
