@@ -12,7 +12,7 @@ if [ "$(echo $1|grep -|grep i)" != "" ];then
     fi
     mkdir -p $HOME/.logitime
     echo "num:1" > $HOME/.logitime/.ltconfig
-    for i in $(seq 0 5)
+    for i in $(seq 0 6)
     do
 	echo "day $i:108" >> $HOME/.logitime/.ltconfig
     done
@@ -25,8 +25,8 @@ elif [[ "$(echo $1|grep -|grep u)" != "" ]];then
     rm -v $HOME/bin/ltcalcul
     rm -v $HOME/bin/ltlog
     rm -v $HOME/bin/ltodo
-    read -p "Delete the user's files? yes?:" a
-    [ "$a" = "yes" ] && rm -Rv $HOME/.logitime || echo ingored $HOME/.logitime
+    read -p "Delete the user's files?\[y/n\]" a
+    [ "$a" = "y" || "$a" = "Y" ] && rm -Rv $HOME/.logitime || echo ingored $HOME/.logitime
     echo Uninstalled.
 else
     printf "\t-i\tinstall\n\t  -a\tinstall for android\n\t-u\tunistall\n"
