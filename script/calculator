@@ -2,7 +2,7 @@
 
 
 #=====-declare=====#
-for i in $(seq 0 5)
+for i in $(seq 0 6)
 do
     At[i]=$(grep -Po "(?<=day $i:).+" $HOME/.logitime/.ltconfig)
 done
@@ -18,7 +18,7 @@ if [ "$(echo $1|grep -|grep h)" != ""  ];then
 else
     while read a b c d
     do
-	if [[ $a != [0-5] ]];then	
+	if [[ $a != [0-6] ]];then	
 	    cnt=$((cnt + 1))
 	    tmp[$cnt]=$a
 	    Ju=1

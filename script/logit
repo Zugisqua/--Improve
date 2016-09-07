@@ -19,16 +19,16 @@ if [ "$1" = "" ];then
 	    if [[ $j == 2 ]];then
 		sed -i '$d' $log
 	    fi
-	elif [ $a == 'exit' ];then
+	elif [ "$a" == 'exit' ];then
 	j=2
-	elif [ $a == 'delete' ];then
+	elif [ "$a" == 'delete' ];then
 	    sed -i '$d' $log
 	    echo -e \ "\e[35malready deleted last event.\e[37m"
-	elif [[ $d == "" ]];then
+	elif [[ "$d" == "" ]];then
 	    echo -n $a\ >> $log
-	    while [[ $i != 2 ]] && read -p "Mark: " b c
+	    while [[ "$i" != 2 ]] && read -p "Mark: " b c
 	    do
-		if [ $b == 'ti' ];then
+		if [ "$b" == 'ti' ];then
 		    H=$((10#$(date "+%H")))
 		    M=$((10#$(date "+%M")))
 		    if [[ $H == [0-3] ]];then
@@ -39,7 +39,7 @@ if [ "$1" = "" ];then
 		    echo -e \ "\e[36mmarked: $H:$(($M/10+M%10/5))0\e[37m"		
 		    i=$((i+1))		
 		elif [[ ($b == [0-9] || $b == [0-2][0-9])&&($c == [0-9] || $c == [0-5][0-9] ) ]];then
-		    if [[ $b == [0-3] ]];then
+		    if [[ "$b" == [0-3] ]];then
 			H=$((24+b))
 		    else
 			H=$b
@@ -49,7 +49,7 @@ if [ "$1" = "" ];then
 		    echo -n $ti\ >> $log
 		    echo -e \ "\e[36mmarked: $H:$(($M/10+M%10/5))0\e[37m"
 		    i=$((i+1))
-		elif [ $b == 'exit' ];then
+		elif [ "$b" == 'exit' ];then
 		    sed -i '$d' $log
 		    i=2
 		    k=1
@@ -57,7 +57,7 @@ if [ "$1" = "" ];then
 		    echo -e \ "\e[31mError! retry please.\e[37m"
 		fi
 	    done
-	    if [[ $k == 0 ]];then
+	    if [[ "$k" == 0 ]];then
 		read -p "Note: " e
 		echo $e >> $log
 		if [ "$(grep "$a " $list)" = "" ];then
@@ -91,7 +91,7 @@ if [ "$1" = "" ];then
     done
     echo -e \ "\e[35mexit!"
 elif [ "$(echo $1|grep -|grep  r)" != "" ];then
-    mv $log ."$log"_$num
+    mv $log "$log"_$num
     touch $log
     mv $tmp "$tmp_"T
     touch $tmp

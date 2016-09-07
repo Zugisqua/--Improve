@@ -35,7 +35,8 @@ if [ "$(echo $1|grep -o -)" = '-' ];then
 	    sort -fuk1 $list > $tmp_
 	fi
 	while read a b c d e f
-	do	
+	do
+	    [ "$(echo $a|grep -o _)" = "" ] && printf "\n"
 	    if [ "$(echo $1|grep -o 0)" = '0' ];then
 		[[ "$d" = 0 || "$(echo $c|grep -o U)" = ""  ]] && d_=$d || d_="\033[33m$d\033[37m"
 		printf "[$e]-$d_\t"
@@ -91,7 +92,7 @@ if [ "$(echo $1|grep -o -)" = '-' ];then
     elif [[ "$(echo $1|grep -|grep -o h)" != "" ]];then
 	printf "usage: ltodo [-u] [-l[1[0][2]]] [-a] [-x] [-f]\n"
     fi
-elif [ "$1" = ""  ];then
+elif [[ "$1" = "" || "$1" = 'more' ]];then
     echo ==$(date)----
     echo ""
     grep U $list|grep -P "$(date '+%F')" > $tmp_
@@ -108,5 +109,5 @@ elif [ "$1" = ""  ];then
     rm $tmp_
     echo ""
 else
-    printf "usage: ltodo [-u] [-l[1[0][2]]] [-a] [-x] [-f]\n"
+    printf "usage: ltodo [more] [-u] [-l[1[0][2]]] [-a] [-x] [-f]\n"
 fi
