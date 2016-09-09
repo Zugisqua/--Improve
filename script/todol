@@ -64,7 +64,7 @@ if [ "$(echo $1|grep -o -)" = '-' ];then
 		printf "$a"		    
 	    fi
 	    printf "\033[37m"
-	    [  "$(echo $1|grep -o 2)" != ""  ] &&  printf " - (\033[35m$T_\033[37m)\n" || printf "\n"
+	    [[ "$(echo $1|grep -o 2)" != "" && "$t_" != 0 ]] &&  printf " - (\033[35m$T_\033[37m)\n" || printf "\n"
 	done < $tmp_
 	[  "$(echo $1|grep -o 2)" != ""  ] && printf "$(grep -Po '(?<=__).+(?=__)' $tmp ) Updated\n"
 	rm $tmp_
@@ -82,9 +82,13 @@ if [ "$(echo $1|grep -o -)" = '-' ];then
 	    echo " Invalid! try again."
 	fi
     elif [ "$(echo $1|grep -o f)" = 'f' ];then	
-	sed  "s#$2 0000000000 U#$2 0000000000 _#g" $list > $tmp_
+	if [[  "$(echo $1|grep -o f)" = 'f' &&  "$(echo $1|grep -o 0)" != "" ]];then	      
+	    sed  "s#$2 0000000000 _#$2 0000000000 U#g" $list > $tmp_
+	else
+	    sed  "s#$2 0000000000 U#$2 0000000000 _#g" $list > $tmp_
+	fi
 	if [[ $(diff $tmp_ $list) && "$2" != "" ]] ;then
-	    printf " $2 have marked as finished.\n"
+	    printf " $2 status changed.\n"
 	    mv $tmp_ $list
 	else
 	    printf " No such TO-DO.\n"
@@ -109,5 +113,5 @@ elif [[ "$1" = "" || "$1" = 'more' ]];then
     rm $tmp_
     echo ""
 else
-    printf "usage: ltodo [more] [-u] [-l[1[0][2]]] [-a] [-x] [-f]\n"
+    printf "usage: ltodo [more] [-u] [-l[1[0][2]]] [-a] [-x] [-f[0]]\n"
 fi
