@@ -4,7 +4,7 @@ log=$HOME/.logitime/log
 list=$HOME/.logitime/list
 tmp_=$HOME/.logitime/.tmp_
 tmp=$HOME/.logitime/.tmp
-num=$(grep -Po '(?<=num:).+' $HOME/.logitime/.ltconfig)
+
 #==================
 
 if [ "$1" = "" ];then
@@ -97,13 +97,6 @@ if [ "$1" = "" ];then
 	fi
     done
     echo -e \ "\e[35mexit!"
-elif [ "$(echo $1|grep -|grep  r)" != "" ];then
-    mv $log "$log"_$num
-    touch $log
-    mv $tmp "$tmp_"T
-    touch $tmp
-    sed -i "s#num:$num#num:$((num+1))#g" $HOME/.logitime/.ltconfig
-    echo -e "\e[35mcreated!\e[37m"
 else
     printf "usage: ltlog [-r]\n"
 fi

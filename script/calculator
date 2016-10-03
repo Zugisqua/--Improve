@@ -6,10 +6,11 @@ for i in $(seq 0 6)
 do
     At[i]=$(grep -Po "(?<=day $i:).+" $HOME/.logitime/.ltconfig)
 done
+num=$(grep -Po '(?<=num:).+' $HOME/.logitime/.ltconfig)
 log=$HOME/.logitime/log
 list=$HOME/.logitime/list
 tmp_=$HOME/.logitime/.tmp_
-tmp=$HOME/.logitime/tmp
+tmp=$HOME/.logitime/.tmp
 
 function tme(){
     echo -n "$((6+$1/6)):$(($1%6))0"
@@ -113,30 +114,37 @@ if [ "$1" != "" ] ;then
 			      			   grep " $i "|\
 						   awk '{sum+=$3}END{print sum}')\n$Alt"|sort -fuk2)"
 	done
-	_par=$(($(echo $1|grep -Po '(?<=-t).+')))
-	if [ "$_par" != "0" ];then
-	    _a="$Lis"
-	    for i in $(seq 1 $_par)
-	    do
-		_a="$(echo "$_a"|\
-			   grep -Po '.+(?=_)'|\
-			   sort -fuk1)"
-	    done
-	    for i in $_a
-	    do
-		Lat="$(printf "$(echo "$Alt"|grep " $i ")\n$Lat")"
-	    done
-	    Lat=$(echo "$Lat"|sort -fuk2)
+	if [ "$(echo $1|grep  rans)" != "" ];then
+	    mv $log "$log"_$num
+	    touch $log
+	    echo "$Alt" > "$tmp_"T
+	    sed -i "s#num:$num#num:$((num+1))#g" $HOME/.logitime/.ltconfig
+	    echo -e "\e[35mcreated!\e[37m"
 	else
-	    Lat="$Alt"
-	fi
-	echo "$Lat"|grep "$2"|\
-	    awk '
+	    _par=$(($(echo $1|grep -Po '(?<=-t).+')))
+	    if [ "$_par" != "0" ];then
+		_a="$Lis"
+		for i in $(seq 1 $_par)
+		do
+		    _a="$(echo "$_a"|\
+		    	   grep -Po '.+(?=_)'|\
+			   sort -fuk1)"
+		done
+		for i in $_a
+		do
+		    Lat="$(printf "$(echo "$Alt"|grep " $i ")\n$Lat")"
+		done
+		Lat=$(echo "$Lat"|sort -fuk2)
+	    else
+		Lat="$Alt"
+	    fi
+	    echo "$Lat"|grep "$2"|\
+		awk '
 		   function inter(num){
-		   	    return int(num/6)":"num%6"0"
-	       	   }
+			    return int(num/6)":"num%6"0"
+	       	   }		   
 		   function inte(num){
-	    	   	    if (num>0)
+	    	   	    if (num>0)	
 		    	    {return int(num/6)":"num%6"0"}
 		   }	       	 
                    function tre(da,re,head){
@@ -152,7 +160,8 @@ if [ "$1" != "" ] ;then
                             return temp head"    "re
                    }
                    {printf tre("\033[36m"inter($1)"\033[37m","\033[35m"inte($3)"\033[37m",$2)"\n"}'
-
+	    echo ""
+	fi
     elif [ "$2" = "note" ];then
 	grep "$1" $log --color=always|\
 	    awk '{print $1"  "$4" "$5" "$6" "$7" "$8" "$9" "$10}'
