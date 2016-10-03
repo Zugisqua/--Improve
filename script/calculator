@@ -9,128 +9,300 @@ done
 log=$HOME/.logitime/log
 list=$HOME/.logitime/list
 tmp_=$HOME/.logitime/.tmp_
-tmp=$HOME/.logitime/.tmp
-#=====read=====#
+tmp=$HOME/.logitime/tmp
 
-cnt=0;j=0;i=1;Ju=1
-if [ "$(echo $1|grep -|grep h)" != ""  ];then
-    printf "usage: ltcalcul [-m] [-d[0][levelnumbber]]\n"
-else
-    while read a b c d
+function tme(){
+    echo -n "$((6+$1/6)):$(($1%6))0"
+}
+function itv(){
+    echo -n "$(($1/6)):$(($1%6))0"
+}
+#==========#
+Dat=$(grep -Po "(?<=:).+" $log|\
+	  awk '{print $1" "$3-$2}')
+Sub=$(grep -Po "(?<=:).+" $log|\
+	  awk '{print $1}'|\
+	  sort -fuk1)
+Mai=$(echo "$Sub"|\
+	  awk -F "_" '{print $1}'|\
+	  sort -fuk1)
+#==========#
+
+for i in $(seq 0 6)
+do
+    dat[i]=$(grep -Po "(?<=$i:).+" $log|\
+	 awk '{print $1" "$3-$2}')
+    _a=$(grep -Po "$i:.+" $log)
+    if [[  "$_a" != "" && "$(echo $1|grep -|grep t)" = "" ]];then
+	echo 
+	echo -e "DAY:$i"
+	echo "$_a"|awk '
+	function time(num){
+		 return 6+int(num/6)":"num%6"0"
+		 }
+	function inter(num){
+		 return int(num/6)":"num%6"0"
+	       	 }
+	{
+	printf " "time($2)"--"time($3)"\t"inter($3-$2)"\t"$1"\n" 
+	}'
+    fi
+done
+cat <<EOF
+
+---------------------------------
+EOF
+if [[ "$(echo $1|grep -|grep t)" = "" ]];then
+    j=1
+    for i in $Mai
     do
-	if [[ $a != [0-6] ]];then	
-	    cnt=$((cnt + 1))
-	    tmp[$cnt]=$a
-	    Ju=1
-	    if [[ $cnt != 1 ]];then	    
-		for k in $(seq 1 $((cnt-1)))
-		do
-		    if [[ ${tmp[$k]} == $a ]];then
-			Ju=$((Ju*0))
-		    else
-			Ju=$((Ju*1))
-		    fi
-		done
-	    fi
-	    if [[ $Ju = 1 ]] ;then
-		Sub[$i]=$a
-		i=$((i+1))
-	    fi
-	    let S_$a[$j-1]=$((S_$a[j-1]+c-b))
-	    let Tols[$j-1]=$((Tols[j-1]+c-b))
-	    let C_$a[$j-1]=$((C_$a[j-1]+1))
-	    #-------output-----#
-	    printf "$((6+b/6)):$((b%6))0-$((6+c/6)):$((c%6))0\t$(((c-b)/6)):$(((c-b)%6))0\t[$((j-1))]$a\n"
-	    if [[ $(echo $1|grep -|grep -o m) != "" ]];then
-		echo \ \ Notes: $d
-	    fi	
-	else
-	    echo =========
-	    printf "\tDay:$a\n"
-	    j=$(($j + 1))
-	fi	  		
-    done < $log
-    
-    #------comment-------#
-    echo \ 
-    echo ======================
-    for k in ${Tols[@]};do TolS=$((TolS+k));done
-    for k in $(seq 0 $((j-1)))
-    do
-	AT=$((AT+At[$k]))
-	printf "[$k] Total Duration: $((Tols[k]/6)):$((Tols[k]%6))0/$((At[k]/6)):$((At[k]%6))0\tOccupy: $((Tols[k]*100/At[k]))%%\n"
+	_a=$(echo "$Dat"|grep "$i"|awk '{sum+=$2}END{print sum}')
+	printf " $i-Duaration: $(itv $_a)\t"
+	[[ "$((j%2))" = 0 ]] && echo " "
+	j=$[j+1]
     done
-    printf "    Total ALL: $((TolS/6)):$((TolS%6))0/$((AT/6)):$((AT%6))0\tmean: $((TolS*100/AT))%%\n"
-    
-    if [[  $(echo $1|grep -|grep -Po d) != "" ]];then
-	rm -f $tmp 
-	echo ----------------------
-	for k in ${Sub[@]}
-	do
-	    [ "$(echo $1|grep -|grep -Po [0-9])" = "" ] && echo $k:
-	    for l in $(seq 0 $((j-1)))
-	    do
-		let As_$k=$((As_$k+S_$k[l]))
-		let Ac_$k=$((Ac_$k+C_$k[l]))
-		[ "$(echo $1|grep -|grep -Po [0-9])" = "" ] && printf "  [$l] $((S_$k[l]/6)):$((S_$k[l]%6))0\t"
-	    done
-	    t="$((As_$k/6)):$((As_$k%6))0"
-	    o="$((As_$k*100/AT)).$(((As_$k*1000/AT)%10))%%"
-	    a="$(((As_$k/Ac_$k)/6)):$(((As_$k/Ac_$k)%6))0"	 
-	    ta=$((As_$k))
-	    echo "$k $ta" >> $tmp 
-	    [ "$(echo $1|grep -|grep -Po [0-9])" = "" ] && printf "\n  Total: $t\tOccupy: $o\n  Aver-duration: $a\n"
+    echo  ""
+
+cat <<EOF
+=================================
+EOF
+fi
+if [[ "$(echo $1|grep -|grep t)" = "" ]];then
+    for i in $(seq 0 6)
+    do
+	_a=$(echo "${dat[i]}"|awk '{sum+=$2}END{print sum}')
+	printf "[$i]\tTotal-Dua: $(itv $_a)/$(itv ${At[i]})\tPer: $((100*$_a/${At[i]}))%% \n"
+	AT=$((AT+At[i]))
+    done
+    _a=$(echo "$Dat"|\
+	     awk '{sum+=$2}END{print sum}')
+    printf "[ ]\tTotal-All: $(itv $_a)/$(itv $AT)\tPer: $((100*$_a/$AT))%%\n"
+
+cat <<EOF
+
+---------------------------------
+EOF
+fi
+if [ "$1" != "" ] ;then
+    ta="$Sub"
+    sub="$Sub"
+    while [ "$ta" != "" ]
+    do
+	ta="$(echo "$ta"|grep -Po '.+(?=_)')"
+	Sub="$(printf "$Sub\n$ta"|sort -fuk1)"
+    done
+    for i in $Sub
+    do
+	Al=$(echo "$Dat"|\
+		 grep -P "$i"|\
+	     awk '{sum+=$2}END{print sum}')
+	Sai="$(printf "$Al $i $(echo "$Dat"|\
+    		 	      grep -P "$i "|\
+		 	      	      awk '{sum+=$2}END{print sum}')\n$Sai"|\
+			      	      sort -fuk2)"
+    done
+    if [ "$(echo $1|grep -|grep t)" != "" ];then
+	Lis="$(cat $list|\
+		  awk '{print $1}'|\
+		  sort -fuk1)"
+	for i in $Lis
+	do	    
+	    Alt="$(printf "$(($(printf "$Sai\n$(cat "$tmp_"T)"|\
+	    		  grep " $i "|\
+			  awk '{sum+=$1}END{printf sum}'))) $i $(printf "$Sai\n$(cat "$tmp_"T)"|\
+			      			   grep " $i "|\
+						   awk '{sum+=$3}END{print sum}')\n$Alt"|sort -fuk2)"
 	done
-	if [ "$(echo $1|grep -|grep -Po 0)" != "" ];then
-	    for k in $(grep -Po '.+(?= 0000000000)' $list)
+	_par=$(($(echo $1|grep -Po '(?<=-t).+')))
+	if [ "$_par" != "0" ];then
+	    _a="$Lis"
+	    for i in $(seq 1 $_par)
 	    do
-		sum=0	    
-		for x in $(grep $k $tmp "$tmp"_T|grep -Po "(?<= ).+")
-		do
-		    sum=$((x+sum))
-		done
-		ta=$((As_$k))
-		t_=$(grep -Po  "(?<= $k ).+" "$tmp_"T)
-		echo "$sum $k $((t_+ta))" >> $tmp_   
+		_a="$(echo "$_a"|\
+			   grep -Po '.+(?=_)'|\
+			   sort -fuk1)"
 	    done
-	    mv $tmp_ $tmp 
-	    echo "__ $(date) __" >> $tmp 
-	echo \ Calculate for TO-DOs done.
+	    for i in $_a
+	    do
+		Lat="$(printf "$(echo "$Alt"|grep " $i ")\n$Lat")"
+	    done
+	    Lat=$(echo "$Lat"|sort -fuk2)
 	else
-	    q=$((2*($(echo $1|grep -Po '(?<=-d).+')-1)))
-	    for k in ${Sub[@]}
-	    do
-		if [ "$(echo $k|grep -o _|wc -c)" = "$q" ];then
-		    echo $k:
-		    sum=0
-		    for x in $(grep $k $tmp|grep -Po "(?<= ).+")
-		    do
-			sum=$((x+sum))
-		    done
-		    for l in $(seq 0 $((j-1)))
-		    do
-			sums=0
-			for p in ${Sub[@]}
-			do
-			    if [ "$(echo $p|grep -o $k)" != ""  ];then
-				sums=$((S_$p[l]+sums))
-			    fi			
-			done
-			printf "  [$l] $((sums/6)):$((sums%6))0\t"
-		    done
-		    cq="$(grep -c $k $log)"
-		    tq="$((sum/6)):$((sum%6))0"
-		    oq="$((sum*100/AT)).$(((sum*1000/AT)%10))%%"
-		    aq="$(((sum/cq)/6)):$(((sum/cq)%6))0"	 
-		    printf "\n  Total: $tq\tOccupy: $oq\n  Aver-duration: $aq\n"
-		fi
-	    done
-	fi    
+	    Lat="$Alt"
+	fi
+	echo "$Lat"|grep "$2"|\
+	    awk '
+		   function inter(num){
+		   	    return int(num/6)":"num%6"0"
+	       	   }
+		   function inte(num){
+	    	   	    if (num>0)
+		    	    {return int(num/6)":"num%6"0"}
+		   }	       	 
+                   function tre(da,re,head){
+                            "echo "head"|grep -o _|wc -c "|getline _a
+                            if (_a==0){printf "\n"}
+                            printf "["da"]" "  \t"
+                            if (_a!=0)
+                               {for (i=2;i<_a;i++)
+                                   printf "  "
+                               temp="└── "}
+                            else
+                                temp=""
+                            return temp head"    "re
+                   }
+                   {printf tre("\033[36m"inter($1)"\033[37m","\033[35m"inte($3)"\033[37m",$2)"\n"}'
+
+    elif [ "$2" = "note" ];then
+	grep "$1" $log --color=always|\
+	    awk '{print $1"  "$4" "$5" "$6" "$7" "$8" "$9" "$10}'
+    else
+	echo "$Sai"|grep $1|\
+	    awk '
+	    function inter(num){
+	    	 if (num>0)
+		    {return int(num/6)":"num%6"0"}
+	       	 }
+	    {print "[\033[36m"inter($1)"\033[37m]  \t"$2"   \t\033[35m"inter($3)"\033[37m"}'
+	    
+cat <<EOF
+
+---------------------------------
+EOF
     fi
 fi
 
+#for a in $Sub
+#do
+#num=$(($(echo $a|grep -o _|wc -c)/2))
+#    echo Mun: $num
+#    _t=$a
+#    for i in $(seq 0 $num)
+#    do
+#	Mai[num-i]="$(printf "${Mai[i]}\n$_t")"
+#	_t=$(echo $_t|grep -Po '.+(?=_)')
+#    done
+#    D[0]=$(echo ${Mai[0]}|sort -fuk1)
+#
+#done
 
-    
+#echo "${dat[2]}"
+#echo --
+#echo "$Dat"
 
-
-
+##cnt=0;j=0;i=1;Ju=1
+##if [ "$(echo $1|grep -|grep h)" != ""  ];then
+##    printf "usage: ltcalcul [-m] [-d[0][levelnumbber]]\n"
+##else
+##    while read a b c d
+##    do
+##	if [[ $a != [0-6] ]];then	
+##	    cnt=$((cnt + 1))
+##	    tmp[$cnt]=$a
+##	    Ju=1
+##	    if [[ $cnt != 1 ]];then	    
+##		for k in $(seq 1 $((cnt-1)))
+##		do
+##		    if [[ ${tmp[$k]} == $a ]];then
+##			Ju=$((Ju*0))
+##		    else
+##			Ju=$((Ju*1))
+##		    fi
+##		done
+##	    fi
+##	    if [[ $Ju = 1 ]] ;then
+##		Sub[$i]=$a
+##		i=$((i+1))
+##	    fi
+##	    let S_$a[$j-1]=$((S_$a[j-1]+c-b))
+##	    let Tols[$j-1]=$((Tols[j-1]+c-b))
+##	    let C_$a[$j-1]=$((C_$a[j-1]+1))
+##	    #-------output-----#
+##	    printf "$((6+b/6)):$((b%6))0-$((6+c/6)):$((c%6))0\t$(((c-b)/6)):$(((c-b)%6))0\t[$((j-1))]$a\n"
+##	    if [[ $(echo $1|grep -|grep -o m) != "" ]];then
+##		echo \ \ Notes: $d
+##	    fi	
+##	else
+##	    echo =========
+##	    printf "\tDay:$a\n"
+##	    j=$(($j + 1))
+##	fi	  		
+##    done < $log
+##    
+##    #------comment-------#
+##    echo \ 
+##    echo ======================
+##    for k in ${Tols[@]};do TolS=$((TolS+k));done
+##    for k in $(seq 0 $((j-1)))
+##    do
+##	AT=$((AT+At[$k]))
+##	printf "[$k] Total Duration: $((Tols[k]/6)):$((Tols[k]%6))0/$((At[k]/6)):$((At[k]%6))0\tOccupy: $((Tols[k]*100/At[k]))%%\n"
+##    done
+##    printf "    Total ALL: $((TolS/6)):$((TolS%6))0/$((AT/6)):$((AT%6))0\tmean: $((TolS*100/AT))%%\n"
+##    
+##    if [[  $(echo $1|grep -|grep -Po d) != "" ]];then
+##	rm -f $tmp 
+##	echo ----------------------
+##	for k in ${Sub[@]}
+##	do
+##	    [ "$(echo $1|grep -|grep -Po [0-9])" = "" ] && echo $k:
+##	    for l in $(seq 0 $((j-1)))
+##	    do
+##		let As_$k=$((As_$k+S_$k[l]))
+##		let Ac_$k=$((Ac_$k+C_$k[l]))
+##		[ "$(echo $1|grep -|grep -Po [0-9])" = "" ] && printf "  [$l] $((S_$k[l]/6)):$((S_$k[l]%6))0\t"
+##	    done
+##	    t="$((As_$k/6)):$((As_$k%6))0"
+##	    o="$((As_$k*100/AT)).$(((As_$k*1000/AT)%10))%%"
+##	    a="$(((As_$k/Ac_$k)/6)):$(((As_$k/Ac_$k)%6))0"	 
+##	    ta=$((As_$k))
+##	    echo "$k $ta" >> $tmp 
+##	    [ "$(echo $1|grep -|grep -Po [0-9])" = "" ] && printf "\n  Total: $t\tOccupy: $o\n  Aver-duration: $a\n"
+##	done
+##	if [ "$(echo $1|grep -|grep -Po 0)" != "" ];then
+##	    for k in $(grep -Po '.+(?= 0000000000)' $list)
+##	    do
+##		sum=0	    
+##		for x in $(grep $k $tmp "$tmp"_T|grep -Po "(?<= ).+")
+##		do
+##		    sum=$((x+sum))
+##		done
+##		ta=$((As_$k))
+##		t_=$(grep -Po  "(?<= $k ).+" "$tmp_"T)
+##		echo "$sum $k $((t_+ta))" >> $tmp_   
+##	    done
+##	    mv $tmp_ $tmp 
+##	     
+##	echo \ Calculate for TO-DOs done.
+##	else
+##	    q=$((2*($(echo $1|grep -Po '(?<=-d).+')-1)))
+##	    for k in ${Sub[@]}
+##	    do
+##		if [ "$(echo $k|grep -o _|wc -c)" = "$q" ];then
+##		    echo $k:
+##		    sum=0
+##		    for x in $(grep $k $tmp|grep -Po "(?<= ).+")
+##		    do
+##			sum=$((x+sum))
+##		    done
+##		    for l in $(seq 0 $((j-1)))
+##		    do
+##			sums=0
+##			for p in ${Sub[@]}
+##			do
+##			    if [ "$(echo $p|grep -o $k)" != ""  ];then
+##				sums=$((S_$p[l]+sums))
+##			    fi			
+##			done
+##			printf "  [$l] $((sums/6)):$((sums%6))0\t"
+##		    done
+##		    cq="$(grep -c $k $log)"
+##		    tq="$((sum/6)):$((sum%6))0"
+##		    oq="$((sum*100/AT)).$(((sum*1000/AT)%10))%%"
+##		    aq="$(((sum/cq)/6)):$(((sum/cq)%6))0"	 
+##		    printf "\n  Total: $tq\tOccupy: $oq\n  Aver-duration: $aq\n"
+##		fi
+##	    done
+##	fi    
+##    fi
+##fi

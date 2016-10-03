@@ -3,114 +3,189 @@
 
 
 log=$HOME/.logitime/log
-list=$HOME/.logitime/list
+list="$(cat $HOME/.logitime/list)"
+List=$HOME/.logitime/list
 tmp_=$HOME/.logitime/.tmp_
-tmp=$HOME/.logitime/.tmp
+tmp=$HOME/.logitime/tmp
 #=====================
 
 if [ "$(echo $1|grep -o -)" = '-' ];then
     if [ "$(echo $1|grep -o u)" = 'u' ];then
-	while read a b c d e f
-	do
-	    [  "$(grep -c "$a" "$list")" != '1' ] && b_=_ || b_=$c
-	    if [[ "$(echo $c|grep -o U)" != 'U' || "$e" = "$(date '+%F')" || "$(grep -c "$a" $list)" != '1'   ]];then
-		printf "$a 0000000000 $b_ $d $e $f\n" >> $tmp_
-	    fi
-	done <$list
-	while read a b c d e f
-	do	    
-	    if [[ "$(echo $c|grep -o U)" = 'U' && "$e" != "$(date  '+%F')" &&  "$(grep -c "$a" $list)" = '1'  ]];then
-		d_=$((d+($(date -d "$(date +%F)" +%s)-$(date -d "$e" +%s))/86400))
-		printf "$a 0000000000 $c $d_ $(date '+%F') $f\n" >> $tmp_
-	    fi
-	done <$list	
-	mv $tmp_ $list
+	_Li="$(echo "$list"|grep -P '( U | Z | E )')"
+	echo "$list"|grep ' _ ' > $List
+	echo "$_Li"|\
+	    awk '
+	    function dat(ate,ret){
+	    	     "date -d "ate" +%s"|getline _a
+	    	     "date -d $(date +%F) +%s"|getline _b
+		     _c=int(ret+(_b-_a)/86400)
+		     "date +%F"|getline _d
+		     return _c" "_d}
+	    {print $1" "$2" "$3" "dat($5,$4)" "$6" "$7" "$8" "$9" "$10" "$11" "$12}' >> $List
+#	while read a b c d e f
+#	do
+#	    [  "$(echo "$list"|grep -c "$a")" != '1' ] && b_=_ || b_=$c
+#	    if [[ "$(echo $c|grep -o U)" != 'U' || "$e" = "$(date '+%F')" || "$(echo "$list"|grep -c "$a")" != '1'   ]];then
+#		_t="$(printf "$a 0000000000 $b_ $d $e $f\n$_t")"
+#	    fi
+#	done <<<"$list"
+#	while read a b c d e f
+#	do	    
+#	    if [[ "$(echo $c|grep -o U)" = 'U' && "$e" != "$(date  '+%F')" &&  "$(echo "$list"|grep -c "$a")" = '1'  ]];then
+#		d_=$((d+($(date -d "$(date +%F)" +%s)-$(date -d "$e" +%s))/86400))
+#		_t="$(printf "$a 0000000000 $c $d_ $(date '+%F') $f\n$_t")"
+#	    fi
+#	done <<< "$list"
+#	echo "$_t" >$List
 	echo " Up-to-dated."	
     fi
     if [  "$(echo $1|grep -o l)" = 'l' ];then
-	if [ "$2" != "" ];then
-	    grep -P "$2" "$list" > $tmp_
-	    sort -fuk1 $tmp_ --output=$tmp_
-	else
-	    sort -fuk1 $list > $tmp_
-	fi
-	while read a b c d e f
-	do
-	    [ "$(echo $a|grep -o _)" = "" ] && printf "\n"
-	    if [ "$(echo $1|grep -o 0)" = '0' ];then
-		[[ "$d" = 0 || "$(echo $c|grep -o U)" = ""  ]] && d_=$d || d_="\033[33m$d\033[37m"
-		printf "[$e]-$d_\t"
-	    elif [ "$(echo $1|grep -o 2)" != "" ];then
-		t_=$(grep -Po  "(?<= $a ).+" $tmp )
-		_t=$(grep -Po  ".+(?= $a )" $tmp )
-		T_=$((t_/6)):$((t_%6))0
-		_T=$((_t/6)):$((_t%6))0
-		printf "[ \033[36m$_T\033[37m ]-$d\t"
-	    fi	    
-	    for i in $(seq 1 $(($(echo $a|grep -o _|wc -c)/2-1)))
+	if [ "$(echo $1|grep -o 0)" != ""  ];then
+	    _a="$(echo "$list"|\
+	    	       grep -P '( U | Z | E )'|\
+		       awk '{print $1}')"
+	    Sub="$_a"
+	    while [ "$_a" != "" ]
 	    do
-		printf "    "
+		_a="$(echo "$_a"|grep -Po '.+(?=_)')"
+		Sub="$(printf "$Sub\n$_a"|sort -fuk1)"
 	    done
-	    [ "$(echo $a|grep -o _)" != "" ] && printf "└── "
-	    [[ "$(echo $c|grep -o U)" != "" &&  "$(grep -c "$a" "$list")" = '1' ]] && printf "\033[32m"
-	    if [ "$(echo $1|grep -o 1)" = '1' ];then
-    		_i=$a	    
-		while [[ "$(echo $_i|grep -Po "(?<=_).+")" != "" ]]
-		do
-		    _i=$(echo $_i|grep -Po "(?<=_).+")
-		done
-		printf "$_i"
-	    else	
-		printf "$a"		    
-	    fi
-	    printf "\033[37m"
-	    [[ "$(echo $1|grep -o 2)" != "" && "$t_" != 0 ]] &&  printf " - (\033[35m$T_\033[37m)\n" || printf "\n"
-	done < $tmp_
-	[  "$(echo $1|grep -o 2)" != ""  ] && printf "$(grep -Po '(?<=__).+(?=__)' $tmp ) Updated\n"
-	rm $tmp_
+	    for i in $Sub
+	    do
+		_l="$(printf "$(echo "$list"|grep "$i ")\n$_l")"
+	    done
+	    list="$_l"
+	fi
+	echo "$list"|\
+		   grep "$2"|\
+		   sort -fuk1|\
+		   awk '
+		   function col(head){
+		   	    if ($3=="U")
+		    	       return "\033[32m"head"\033[37m"
+		 	    if ($3=="E")
+			       return "\033[33m"head"\033[37m"
+			    if ($3=="Z")
+			       return "\033[34m"head"\033[37m"
+			    if ($3=="_")
+		    	       return head
+		   }
+		   function tre(da,re,head){
+		   	    "echo "head"|grep -o _|wc -c "|getline _a
+			    if (_a==0){printf "\n"}
+ 			    printf "["da"]:" re  "\t"
+			    if (_a!=0)
+			       {for (i=2;i<_a;i++)
+			       	   printf "  "
+			       temp="└── "}
+			    else
+				temp=""
+		   	    return temp col(head)
+		   }
+		   {printf tre($5,$4,$1)"\n"}'
+#	awk '{printf }' #|\
+#	    awk '{print "["$3"]:"$2" "}'
+#	if [ "$2" != "" ];then
+#	    grep -P "$2" "$list" > $tmp_
+#	    sort -fuk1 $tmp_ --output=$tmp_
+#	else
+#	    sort -fuk1 $list > $tmp_
+#	fi
+#	while read a b c d e f
+#	do
+#	    [ "$(echo $a|grep -o _)" = "" ] && printf "\n"
+#	    if [ "$(echo $1|grep -o 0)" = '0' ];then
+#		[[ "$d" = 0 || "$(echo $c|grep -o U)" = ""  ]] && d_=$d || d_="\033[33m$d\033[37m"
+#		printf "[$e]-$d_\t"
+#	    elif [ "$(echo $1|grep -o 2)" != "" ];then
+#		t_=$(grep -Po  "(?<= $a ).+" $tmp )
+#		_t=$(grep -Po  ".+(?= $a )" $tmp )
+#		T_=$((t_/6)):$((t_%6))0
+#		_T=$((_t/6)):$((_t%6))0
+#		printf "[ \033[36m$_T\033[37m ]-$d\t"
+#	    fi	    
+#	    for i in $(seq 1 $(($(echo $a|grep -o _|wc -c)/2-1)))
+#	    do
+#		printf "    "
+#	    done
+#	    [ "$(echo $a|grep -o _)" != "" ] && printf "└── "
+#	    [[ "$(echo $c|grep -o U)" != "" &&  "$(grep -c "$a" "$list")" = '1' ]] && printf "\033[32m"
+#	    if [ "$(echo $1|grep -o 1)" = '1' ];then
+ #   		_i=$a	    
+#		while [[ "$(echo $_i|grep -Po "(?<=_).+")" != "" ]]
+#		do
+#		    _i=$(echo $_i|grep -Po "(?<=_).+")
+#		done
+#		printf "$_i"
+#	    else	
+#		printf "$a"		    
+#	    fi
+#	    printf "\033[37m"
+#	    [[ "$(echo $1|grep -o 2)" != "" && "$t_" != 0 ]] &&  printf " - (\033[35m$T_\033[37m)\n" || printf "\n"
+#	done < $tmp_
+#	[  "$(echo $1|grep -o 2)" != ""  ] && printf "$(grep -Po '(?<=__).+(?=__)' $tmp ) Updated\n"
+#	rm $tmp_
     elif [  "$(echo $1|grep -o a)" = 'a' ];then
 	while read a b c d e
 	do    
 	    printf "$a[$c]=$d\t $e\n"
-	done < $list
+	done <<< "$list"
     elif [ "$(echo $1|grep -o x)" = 'x'  ];then
 	read -p "InPut: " a b
 	if [[  $b != ""  ]];then
-	    printf "$a 0000000000 U 0 $(date '+%F') $b\n" >> $list
+	    printf "$a 0000000000 U 0 $(date '+%F') $b\n" >> $List
 	    printf " Build.\n"
 	else
 	    echo " Invalid! try again."
 	fi
     elif [ "$(echo $1|grep -o f)" = 'f' ];then	
-	if [[  "$(echo $1|grep -o f)" = 'f' &&  "$(echo $1|grep -o 0)" != "" ]];then	      
-	    sed  "s#$2 0000000000 _#$2 0000000000 U#g" $list > $tmp_
+	if [[  "$(echo $1|grep -o f)" = 'f' &&  "$(echo $1|grep -o 0)" != "" ]];then
+	    sed  "s#$2 0000000000 _#$2 0000000000 U#g" $List > $tmp_
+	elif [[ "$3" != E || "$3" != U || "$3" != Z || "$3" != _ ]];then
+	    sed  "s#$2 0000000000 .#$2 0000000000 $3#g" $List > $tmp_
 	else
-	    sed  "s#$2 0000000000 U#$2 0000000000 _#g" $list > $tmp_
+	    sed  "s#$2 0000000000 .#$2 0000000000 _#g" $List > $tmp_
 	fi
-	if [[ $(diff $tmp_ $list) && "$2" != "" ]] ;then
+	if [[ $(diff $tmp_ $List) && "$2" != "" ]] ;then
 	    printf " $2 status changed.\n"
-	    mv $tmp_ $list
+	    mv $tmp_ $List
 	else
-	    printf " No such TO-DO.\n"
+	    printf " No such TO-DO or Mark wrong.\n"
 	fi
-    elif [[ "$(echo $1|grep -|grep -o h)" != "" ]];then
-	printf "usage: ltodo [-u] [-l[1[0][2]]] [-a] [-x] [-f]\n"
+#    elif [[ "$(echo $1|grep -|grep -o h)" != "" ]];then
+#	printf "usage: ltodo [-u] [-l[1[0][2]]] [-a] [-x] [-f]\n"
     fi
 elif [[ "$1" = "" || "$1" = 'more' ]];then
     echo ==$(date)----
     echo ""
-    grep U $list|grep -P "$(date '+%F')" > $tmp_
-    while read a b c d e f g
-    do
-	if [[ "$(grep -c "$a" $list)" = '1' && "$(echo $c|grep -o U)" != "" ]];then	    
-	    if [ "$1" = "" ];then
-		printf "\033[33m$d\033[37m-[\033[32m$a\033[37m] $f\n"
-	    elif [ "$1" = "more"  ];then
-		printf "\033[33m$d\033[37m-[\033[32m$a\033[37m] $f\n\t$g\n"
-	    fi
-	fi
-    done < $tmp_
-    rm $tmp_
+    echo "$list" |\
+	grep -P "$(date '+%F')"|\
+	sort -fuk3|\
+	awk '
+	function col(head){
+		 if ($3=="U")
+		    return "\033[32m"head"\033[37m"
+		 if ($3=="E")
+		    return "\033[33m"head"\033[37m"
+		 if ($3=="Z")
+		    return "\033[34m"head"\033[37m"
+		 if ($3=="_")
+		    return "\033[30m"head"\033[37m"
+		 }
+	{if ($3!="_")
+	{printf ""$4"-["col($1)"]\t"$6"\n"}}'
+#    grep U $list|grep -P "$(date '+%F')" > $tmp_
+#    while read a b c d e f g
+#    do
+#	if [[ "$(grep -c "$a" $list)" = '1' && "$(echo $c|grep -o U)" != "" ]];then	    
+#	    if [ "$1" = "" ];then
+#		printf "\033[33m$d\033[37m-[\033[32m$a\033[37m] $f\n"
+#	    elif [ "$1" = "more"  ];then
+#		printf "\033[33m$d\033[37m-[\033[32m$a\033[37m] $f\n\t$g\n"
+#	    fi
+#	fi
+#    done < $tmp_
+#    rm $tmp_
     echo ""
 else
     printf "usage: ltodo [more] [-u] [-l[1[0][2]]] [-a] [-x] [-f[0]]\n"

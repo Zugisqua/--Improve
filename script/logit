@@ -10,6 +10,7 @@ num=$(grep -Po '(?<=num:).+' $HOME/.logitime/.ltconfig)
 if [ "$1" = "" ];then
     j=0;k=0
     echo -ne "\e[37m"
+    echo -n "$(date +%w)": >> $log
     while [[ $j != 2 ]] && read -p "Head: " a d
     do
 	i=0
@@ -20,9 +21,12 @@ if [ "$1" = "" ];then
 		sed -i '$d' $log
 	    fi
 	elif [ "$a" == 'exit' ];then
-	j=2
+	    sed -i '$d' $log	    
+	    j=2
 	elif [ "$a" == 'delete' ];then
 	    sed -i '$d' $log
+	    sed -i '$d' $log
+	    echo -n "$(date +%w)": >> $log	    
 	    echo -e \ "\e[35malready deleted last event.\e[37m"
 	elif [[ "$d" == "" ]];then
 	    echo -n $a\ >> $log
@@ -51,6 +55,7 @@ if [ "$1" = "" ];then
 		    i=$((i+1))
 		elif [ "$b" == 'exit' ];then
 		    sed -i '$d' $log
+		    echo -n "$(date +%w)": >> $log		    
 		    i=2
 		    k=1
 		else
@@ -73,13 +78,15 @@ if [ "$1" = "" ];then
 		    else
 			printf " \033[35mNo such TO-DO.\033[37m\n"
 		    fi
+		    echo -n "$(date +%w)": >>$log		    
 		else
 		    if [ "$(grep "$f " $list)" = "" ];then
 			printf "$f 0000000000 U 0 $(date '+%F') $e\n" >> $list
 			echo -e "\033[35m Build.\033[37m"
 		    else
 			echo -e "\033[35m Already existed.\033[37m"
-		    fi		    
+		    fi
+		    echo -n "$(date +%w)": >>$log
 		fi
 	    else
 		echo -e "\033[35m Ignored.\033[37m"
