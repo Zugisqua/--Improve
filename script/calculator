@@ -57,8 +57,12 @@ if [[ "$(echo $1|grep -|grep t)" = "" ]];then
     j=1
     for i in $Mai
     do
-	_a=$(echo "$Dat"|grep "$i"|awk '{sum+=$2}END{print sum}')
-	printf " $i-Duaration: $(itv $_a)\t"
+	_a=$(echo "$Dat"|\
+		 grep "$i"|\
+		 awk '{sum+=$2}END{print sum}')
+	_b=$(echo "$Dat"|\
+		 awk '{sum+=$2}END{print sum}')
+	printf "$i-Duaration: $(itv $_a)|$((100*$_a/$_b))%%\t"
 	[[ "$((j%2))" = 0 ]] && echo " "
 	j=$[j+1]
     done
@@ -72,12 +76,12 @@ if [[ "$(echo $1|grep -|grep t)" = "" ]];then
     for i in $(seq 0 6)
     do
 	_a=$(echo "${dat[i]}"|awk '{sum+=$2}END{print sum}')
-	printf "[$i]\tTotal-Dua: $(itv $_a)/$(itv ${At[i]})\tPer: $((100*$_a/${At[i]}))%% \n"
+	printf "[$i]  Total-Dua: $(itv $_a)/$(itv ${At[i]})\tPer: $((100*$_a/${At[i]}))%% \n"
 	AT=$((AT+At[i]))
     done
     _a=$(echo "$Dat"|\
 	     awk '{sum+=$2}END{print sum}')
-    printf "[ ]\tTotal-All: $(itv $_a)/$(itv $AT)\tPer: $((100*$_a/$AT))%%\n"
+    printf "[ ]  Total-All: $(itv $_a)/$(itv $AT)\tPer: $((100*$_a/$AT))%%\n"
 
 cat <<EOF
 
@@ -162,11 +166,11 @@ if [ "$1" != "" ] ;then
                    {printf tre("\033[36m"inter($1)"\033[37m","\033[35m"inte($3)"\033[37m",$2)"\n"}'
 	    echo ""
 	fi
-    elif [ "$2" = "note" ];then
-	grep "$1" $log --color=always|\
+    elif [[ "$2" = "note" && "$(echo $1|grep -)" = "" ]];then
+	grep  "$1" $log --color=always|\
 	    awk '{print $1"  "$4" "$5" "$6" "$7" "$8" "$9" "$10}'
-    else
-	echo "$Sai"|grep $1|\
+    elif [ "$(echo $1|grep -)" = "" ];then
+	echo "$Sai"|grep  "$1"|\
 	    awk '
 	    function inter(num){
 	    	 if (num>0)

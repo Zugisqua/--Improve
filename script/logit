@@ -71,14 +71,23 @@ if [ "$1" = "" ];then
 		fi				
 		read -p "Act:" f g
 		if [ "$f" = 'done'  ];then
-		    sed  "s#$a 0000000000 U#$a 0000000000 _#g" $list > $tmp_
+		    sed  "s#$a 0000000000 .#$a 0000000000 _#g" $list > $tmp_
 		    if [[ $(diff $tmp_ $list) ]] ;then
 			printf " \033[35m$a have marked as finished.\033[37m\n"
 			mv $tmp_ $list
 		    else
 			printf " \033[35mNo such TO-DO.\033[37m\n"
 		    fi
-		    echo -n "$(date +%w)": >>$log		    
+		    echo -n "$(date +%w)": >>$log
+		elif [[ "$(echo $f|grep -P '(U|Z|E)')" != "" ]];then
+		    sed  "s#$a 0000000000 .#$a 0000000000 $f#g" $list > $tmp_
+		    if [[ $(diff $tmp_ $list) ]] ;then
+			printf " \033[35m$a have marked changed.\033[37m\n"
+			mv $tmp_ $list
+		    else
+			printf " \033[35mNo such TO-DO.\033[37m\n"
+		    fi
+		    echo -n "$(date +%w)": >>$log
 		else
 		    if [ "$(grep "$f " $list)" = "" ];then
 			printf "$f 0000000000 U 0 $(date '+%F') $e\n" >> $list

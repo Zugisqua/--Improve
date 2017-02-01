@@ -84,9 +84,9 @@ if [ "$(echo $1|grep -o -)" = '-' ];then
     elif [ "$(echo $1|grep -o f)" = 'f' ];then	
 	if [[  "$(echo $1|grep -o f)" = 'f' &&  "$(echo $1|grep -o 0)" != "" ]];then
 	    sed  "s#$2 0000000000 _#$2 0000000000 U#g" $List > $tmp_
-	elif [[ "$3" != E || "$3" != U || "$3" != Z || "$3" != _ ]];then
+	elif [[ "$3" = "E" || "$3" = "U" || "$3" = "Z" || "$3" = "_" ]];then
 	    sed  "s#$2 0000000000 .#$2 0000000000 $3#g" $List > $tmp_
-	else
+	elif [ "$3" = "" ];then
 	    sed  "s#$2 0000000000 .#$2 0000000000 _#g" $List > $tmp_
 	fi
 	if [[ $(diff $tmp_ $List) && "$2" != "" ]] ;then
@@ -115,8 +115,7 @@ elif [[ "$1" = "" || "$1" = 'more' ]];then
 		 if ($3=="_")
 		    return "\033[30m"head"\033[37m"
 		 }
-	{if ($3!="_")
-	{printf ""$4"-["col($1)"]\t"$6"\n"}}'
+	{printf ""$4"-["col($1)"]\t"$6"\n"}'
     echo ""
 else
     printf "usage: ltodo [more] [-u] [-l[1[0][2]]] [-a] [-x] [-f[0]]\n"

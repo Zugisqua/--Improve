@@ -11,11 +11,13 @@ if [ "$(echo $1|grep -|grep i)" != "" ];then
 	sed -i 's#/bin/bash#/system/xbin/bash#' $HOME/bin/ltodo	
     fi
     mkdir -p $HOME/.logitime
-    echo "num:1" > $HOME/.logitime/.ltconfig
-    for i in $(seq 0 6)
-    do
-	echo "day $i:108" >> $HOME/.logitime/.ltconfig
-    done
+    if [[ "$(cat $HOME/.logitime/.ltconfig)" = "" ]];then
+	echo "num:1" > $HOME/.logitime/.ltconfig
+	for i in $(seq 0 6)
+	do
+	    echo "day $i:108" >> $HOME/.logitime/.ltconfig
+	done
+    fi
     touch $HOME/.logitime/.tmp_T
     touch $HOME/.logitime/.tmp
     touch $HOME/.logitime/log
