@@ -1,19 +1,23 @@
 #!/bin/bash
 
-log=$HOME/.logitime/log
-list=$HOME/.logitime/list
-tmp_=$HOME/.logitime/.tmp_
-tmp=$HOME/.logitime/.tmp
+dotlog=$HOME/.logitime
+config=$dotlog/.ltconfig  
+num=$(grep -Po '(?<=num:).+' $config)
+  log=$dotlog/log_$num
+  list=$dotlog/list
+  tmp_=$dotlog/.tmp_
+edt=$(grep -Po "(?<=editor:).+" $dotlog/.ltconfig)
 
 #==================
 
 if [ "$1" = "" ];then
-    j=0;k=0
+    j=0
     echo -ne "\e[37m"
     echo -n "$(date +%w)": >> $log
     while [[ $j != 2 ]] && read -p "Head: " a d
     do
 	i=0
+	k=0
 	if [[ $a == [0-9] || $a == [0-9][0-9] ]];then
 	    echo $a >> $log
    	    j=$((j+1))
@@ -66,37 +70,47 @@ if [ "$1" = "" ];then
 		read -p "Note: " e
 		echo $e >> $log
 		if [ "$(grep "$a " $list)" = "" ];then
-		    printf "$a 0000000000 U 0 $(date '+%F') $e\n" >> $list
+		    printf "$a 0000000000 Z 0 $(date '+%F') $e\n" >> $list
 		    echo -e "\033[35m Build.\033[37m"
-		fi				
-		read -p "Act:" f g
-		if [ "$f" = 'done'  ];then
-		    sed  "s#$a 0000000000 .#$a 0000000000 _#g" $list > $tmp_
-		    if [[ $(diff $tmp_ $list) ]] ;then
-			printf " \033[35m$a have marked as finished.\033[37m\n"
-			mv $tmp_ $list
-		    else
-			printf " \033[35mNo such TO-DO.\033[37m\n"
-		    fi
-		    echo -n "$(date +%w)": >>$log
-		elif [[ "$(echo $f|grep -P '(U|Z|E)')" != "" ]];then
-		    sed  "s#$a 0000000000 .#$a 0000000000 $f#g" $list > $tmp_
-		    if [[ $(diff $tmp_ $list) ]] ;then
-			printf " \033[35m$a have marked changed.\033[37m\n"
-			mv $tmp_ $list
-		    else
-			printf " \033[35mNo such TO-DO.\033[37m\n"
-		    fi
-		    echo -n "$(date +%w)": >>$log
-		else
-		    if [ "$(grep "$f " $list)" = "" ];then
-			printf "$f 0000000000 U 0 $(date '+%F') $e\n" >> $list
-			echo -e "\033[35m Build.\033[37m"
-		    else
-			echo -e "\033[35m Already existed.\033[37m"
-		    fi
-		    echo -n "$(date +%w)": >>$log
 		fi
+		l=0
+		while [[ "$l" != "" ]] && read -p "Act:" f g h
+		do
+		    if [ "$f" = 'done'  ];then
+			sed  "s#$a 0000000000 .#$a 0000000000 _#g" $list > $tmp_
+			if [[ $(diff $tmp_ $list) ]] ;then
+			    printf " \033[35m$a have marked as finished.\033[37m\n"
+			    mv $tmp_ $list
+			else
+			    printf " \033[35mNo such TO-DO.\033[37m\n"
+			fi
+			echo -n "$(date +%w)": >>$log
+		    elif [[ "$(echo $f|grep -P '(U|Z|E)')" != "" ]];then
+			sed  "s#$a 0000000000 .#$a 0000000000 $f#g" $list > $tmp_
+			if [[ $(diff $tmp_ $list) ]] ;then
+			    printf " \033[35m$a have marked changed.\033[37m\n"
+			    mv $tmp_ $list
+			else
+			    printf " \033[35mNo such TO-DO.\033[37m\n"
+			fi
+			echo -n "$(date +%w)": >>$log
+		    elif [[ "$f" == "" ]];then
+			l=""
+		    else
+			if [ "$(grep "$f " $list)" = "" ];then
+			    if [[ $(("$g")) != "0" ]];then
+				printf "$f 0000000000 Z -$g $(date '+%F') $h\n" >> $list
+			    else
+				printf "$f 0000000000 Z 0 $(date '+%F') $g $h\n" >> $list		
+			    fi
+			    echo -e "\033[35m Build.\033[37m"
+			else
+			    echo -e "\033[35m No actions.\033[37m"
+			fi
+			echo -n "$(date +%w)": >>$log
+		    fi
+		done
+		l=0
 	    else
 		echo -e "\033[35m Ignored.\033[37m"
 	    fi	    
@@ -106,6 +120,11 @@ if [ "$1" = "" ];then
 	fi
     done
     echo -e \ "\e[35mexit!"
-else
-    printf "usage: ltlog [-r]\n"
+elif [[ "$1" == log ]];then
+    $edt $log 
+elif [[ "$1" == list ]];then
+    $edt $list
+elif [[ "$(echo "$1"|grep r)" != "" ]];then
+    sed -i "s#num:$num#num:$((num+1))#g" $config
+    echo -e "\e[35mcreated!\e[37m"
 fi

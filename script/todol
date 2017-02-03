@@ -1,28 +1,34 @@
 #!/bin/bash
 
-
-
-log=$HOME/.logitime/log
-list="$(cat $HOME/.logitime/list)"
-List=$HOME/.logitime/list
-tmp_=$HOME/.logitime/.tmp_
-tmp=$HOME/.logitime/tmp
+dotlog=$HOME/.logitime
+config=$dotlog/.ltconfig
+num=$(grep -Po '(?<=num:).+' $config)
+  log=$dotlog/log_$num
+  list="$(cat $dotlog/list)"
+  List=$dotlog/list
+  tmp_=$dotlog/.tmp_
+  index=$dotlog/*
+stat=$(grep -Po "(?<=status:).+" $dotlog/.ltconfig)
+  statd=$(grep -Po "(?<=off:).+" $dotlog/.ltconfig)
 #=====================
 
 if [ "$(echo $1|grep -o -)" = '-' ];then
     if [ "$(echo $1|grep -o u)" = 'u' ];then
-	_Li="$(echo "$list"|grep -P '( U | Z | E )')"
+	_Li="$(echo "$list"|grep -P '( U | Z | E )' )"
 	echo "$list"|grep ' _ ' > $List
 	echo "$_Li"|\
 	    awk '
-	    function dat(ate,ret){
+	    function dat(mk,ate,ret){
 	    	     "date -d "ate" +%s"|getline _a
 	    	     "date -d $(date +%F) +%s"|getline _b
 		     _c=int(ret+(_b-_a)/86400)
 		     "date +%F"|getline _d
-		     return _c" "_d}
-	    {print $1" "$2" "$3" "dat($5,$4)" "$6" "$7" "$8" "$9" "$10" "$11" "$12}' >> $List
-	echo " Up-to-dated."	
+		     if ( _c > 0 ) {
+		         if ( mk == "Z" ){ _f="U" }else{_f=mk}
+		     }else{ _f="Z"}
+		     return _f" "_c" "_d}
+	    {print $1" "$2" "dat($3,$5,$4)" "$6" "$7" "$8" "$9" "$10" "$11" "$12}' >> $List
+	echo " Up-to-dated."
     fi
     if [  "$(echo $1|grep -o l)" = 'l' ];then
 	if [ "$(echo $1|grep -o 0)" != ""  ];then
@@ -42,9 +48,9 @@ if [ "$(echo $1|grep -o -)" = '-' ];then
 	    list="$_l"
 	fi
 	echo "$list"|\
-		   grep "$2"|\
-		   sort -fuk1|\
-		   awk '
+	    grep "$2" |\
+	    sort -fuk1|\
+	    awk '
 		   function col(head){
 		   	    if ($3=="U")
 		    	       return "\033[32m"head"\033[37m"
@@ -58,7 +64,7 @@ if [ "$(echo $1|grep -o -)" = '-' ];then
 		   function tre(da,re,head){
 		   	    "echo "head"|grep -o _|wc -c "|getline _a
 			    if (_a==0){printf "\n"}
- 			    printf "["da"]:" re  "\t"
+ 			    printf "["da"]:" re  "  \t"
 			    if (_a!=0)
 			       {for (i=2;i<_a;i++)
 			       	   printf "  "
@@ -74,16 +80,20 @@ if [ "$(echo $1|grep -o -)" = '-' ];then
 	    printf "$a[$c]=$d\t $e\n"
 	done <<< "$list"
     elif [ "$(echo $1|grep -o x)" = 'x'  ];then
-	read -p "InPut: " a b
+	read -p "InPut: " a c b 
 	if [[  $b != ""  ]];then
-	    printf "$a 0000000000 U 0 $(date '+%F') $b\n" >> $List
+	    if [[ $(($c)) != "0" ]];then
+		printf "$a 0000000000 Z -$c $(date '+%F') $b\n" >> $List
+	    else
+		printf "$a 0000000000 Z 0 $(date '+%F') $c $b\n" >> $List		
+	    fi
 	    printf " Build.\n"
 	else
 	    echo " Invalid! try again."
 	fi
     elif [ "$(echo $1|grep -o f)" = 'f' ];then	
 	if [[  "$(echo $1|grep -o f)" = 'f' &&  "$(echo $1|grep -o 0)" != "" ]];then
-	    sed  "s#$2 0000000000 _#$2 0000000000 U#g" $List > $tmp_
+	    sed  "s#$2 0000000000 _#$2 0000000000 Z#g" $List > $tmp_
 	elif [[ "$3" = "E" || "$3" = "U" || "$3" = "Z" || "$3" = "_" ]];then
 	    sed  "s#$2 0000000000 .#$2 0000000000 $3#g" $List > $tmp_
 	elif [ "$3" = "" ];then
@@ -100,11 +110,14 @@ if [ "$(echo $1|grep -o -)" = '-' ];then
     fi
 elif [[ "$1" = "" || "$1" = 'more' ]];then
     echo ==$(date)----
-    echo ""
-    echo "$list" |\
-	grep -P "$(date '+%F')"|\
-	sort -fuk3|\
-	awk '
+    if [[ "$stat" == "off" ]];then
+	null="$(echo "$list" |grep -P '( U | Z | E )')"
+	echo -e "[End: $statd]"
+    else
+	null="$(echo "$list" |grep -P "$(date '+%F')")"
+    fi
+    echo ""    
+    echo "$null"| sort -fuk3 |awk '
 	function col(head){
 		 if ($3=="U")
 		    return "\033[32m"head"\033[37m"
@@ -115,8 +128,17 @@ elif [[ "$1" = "" || "$1" = 'more' ]];then
 		 if ($3=="_")
 		    return "\033[30m"head"\033[37m"
 		 }
-	{printf ""$4"-["col($1)"]\t"$6"\n"}'
+	{printf ""$4":["col($1)"]\t"$6"\n"}'
     echo ""
 else
-    printf "usage: ltodo [more] [-u] [-l[1[0][2]]] [-a] [-x] [-f[0]]\n"
+    echo "==$(date)----"
+    echo ""
+    grep -i "$1" $index --color=always |\
+	grep -Po "(?<=log_).+"|\
+	sort -t ":" -k1 -n
+    if [[ "$(echo "$1"|grep -o _ )" != "" ]];then 
+	echo --------
+	grep -i "$1 " $index --color=always |\
+	    grep -Po "(?<=0000000000 .).+"
+    fi
 fi

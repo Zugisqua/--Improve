@@ -17,6 +17,9 @@ if [ "$(echo $1|grep -|grep i)" != "" ];then
 	do
 	    echo "day $i:108" >> $HOME/.logitime/.ltconfig
 	done
+	echo status:on >>  $HOME/.logitime/.ltconfig
+	echo off: >> $HOME/.logitime/.ltconfig
+	echo editor:nano >> $HOME/.logitime/.ltconfig
     fi
     touch $HOME/.logitime/.tmp_T
     touch $HOME/.logitime/.tmp
