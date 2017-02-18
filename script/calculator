@@ -13,7 +13,7 @@ for i in $(seq 0 6)
 do
     At[i]=$(grep -Po "(?<=day $i:).+" $config)
 done
-
+tmp=$dotlog/.tmp
 
 
 function tme(){
@@ -123,13 +123,19 @@ if [ "$1" != "" ] ;then
             done `
 	done
 	echo calculation done.
-#	printf "sum0\n${Sum[0]}\nsum1\n${Sum[1]}\nsum2\n${Sum[2]}" > "$tmp_"T
-#=====week-renew=====#
+	printf "${Sum[0]}" > $tmp"_0"
+	printf "${Sum[1]}" > $tmp"_1"
+	printf "${Sum[2]}" > $tmp"_2"
+    else
+	Sum[0]="$(cat "$tmp"_0"")"
+	Sum[1]="$(cat "$tmp"_1"")"
+	Sum[2]="$(cat "$tmp"_2"")"
     fi
-    if [ "$(echo $1|grep  r)" != "" ];then	
-#=====tree======#
-	mo="$(($(echo $1|grep -Po '(?<=r).+')))"
-	echo "${Sum[mo]}"|grep "$2"|\
+fi
+if [ "$(echo $1|grep  r)" != "" ];then	
+    #=====tree======#
+    mo="$(($(echo $1|grep -Po '(?<=r).+')))"
+    echo "${Sum[mo]}"|grep "$2"|\
 	   awk '
 	       function inter(num){
 		    return int(num/6)":"num%6"0"
@@ -156,10 +162,9 @@ if [ "$1" != "" ] ;then
 			return "\033[3"(2+_a/2)"m"obj"\033[37m"
               }
           {printf tre(col(inter($2),$1),$1)"\n"}'
-	echo ""
-    fi
+    echo ""
+fi
 cat <<EOF
 
 ---------------------------------
 EOF
-fi
