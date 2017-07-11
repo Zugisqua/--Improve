@@ -27,7 +27,9 @@ if [ "$(echo $1|grep -o -)" = '-' ];then
 		         if ( mk == "Z" ){ _f="U" }else{_f=mk}
 		     }else{ _f="Z"}
 		     return _f" "_c" "_d}
-	    {print $1" "$2" "dat($3,$5,$4)" "$6" "$7" "$8" "$9" "$10" "$11" "$12}' >> $List
+	    {printf $1" "$2" "dat($3,$5,$4)" 
+	    $1=$2=$3=$4=$5="\b"
+	    printf $0"\n"}' >> $List
 	echo " Up-to-dated."
     fi
     if [  "$(echo $1|grep -o l)" = 'l' ];then
@@ -78,18 +80,36 @@ if [ "$(echo $1|grep -o -)" = '-' ];then
 		   	    "echo "head"|grep -o _|wc -c "|getline _a
 			    if (_a==0){printf "\n"}
 			    printf "["col(sqrt(re*re))"]"
-			    if (re<0){printf"-"}
+			    if (re<0){printf"*"}
 			    printf "\t"
 			    if (_a!=0)
 			       {for (i=2;i<_a;i++)
 			       	   printf "  "
-			       temp="├─╼ "}
+			       temp="  \033[35m+\033[37m "}
 			    else
 			       temp="" 
-		   	    return temp col(head)"\t   "info
+		   	    return temp col(head)"          "info
 
 		   }
 		   {printf tre($4,$1,$6)"\n"}'
+#			   function tre(head){
+#			    "echo "head"|grep -o _|wc -c "|getline _a
+#			    for (i=1;i<=8;i++){_c[i]=""}
+#			    temp=""
+#			    _d=0
+#			    for (i=1;i<=_a/2+1;i++){ 
+#			    	"echo "head"|cut -d _ -f 1-"i""|getline _b
+#				_c[i]=_b
+#			    	"echo "$list"|grep "_b"|grep -c GFT"|getline _d
+#				printf _b" "_d"\n"
+#			    	if (_d==0)
+#					temp=temp"│"
+#			    	else
+#					temp=temp"└"
+#			    }
+#
+#
+#			    return 
     elif [  "$(echo $1|grep -o a)" = 'a' ];then
 	while read a b c d e
 	do    
@@ -152,9 +172,15 @@ elif [[ "$1" = "" ]];then
 else
     echo "==$(date)----"
     echo ""
-    grep -i "$1" $index --color=always |\
+    grep -i "$1" $index |\
 	grep -Po "(?<=log_).+"|\
-	sort -t ":" -k1 -n
+	sort -t ":" -k1 -n|awk '
+	    function time(num){
+                     return 6+int(num/6)":"num%6"0"
+            }
+	    {printf $1" ["time($3)"]  "$4"\t"
+	    $1=$2=$3=$4="\b"
+	    printf $0"\n"}'
     if [[ "$(echo "$1"|grep -o _ )" != "" ]];then 
 	echo --------
 	grep -i "$1 " $index --color=always |\

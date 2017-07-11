@@ -122,4 +122,9 @@ elif [[ "$1" == list ]];then
 elif [[ "$(echo "$1"|grep r)" != "" ]];then
     sed -i "s#num:$num#num:$((num+1))#g" $config
     echo -e "\e[35mcreated!\e[37m"
+#elif [[ "$(echo "$1"|grep d)" != "" ]];then
+#    if [[ "$2" == "" ]];then
+#	
+#    else
+#    fi    
 fi
