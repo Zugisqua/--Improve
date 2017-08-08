@@ -27,8 +27,8 @@ if [ "$(echo $1|grep -o -)" = '-' ];then
 		         if ( mk == "Z" ){ _f="U" }else{_f=mk}
 		     }else{ _f="Z"}
 		     return _f" "_c" "_d}
-	    {printf $1" "$2" "dat($3,$5,$4)" 
-	    $1=$2=$3=$4=$5="\b"
+	    {printf $1" "$2" "dat($3,$5,$4)
+	    $1=$2=$3=$4=$5=""
 	    printf $0"\n"}' >> $List
 	echo " Up-to-dated."
     fi
